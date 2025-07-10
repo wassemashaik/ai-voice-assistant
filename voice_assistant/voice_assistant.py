@@ -113,24 +113,24 @@ def process_recorded_audio():
     """Process recorded audio frames and transcribe"""
     if "audio_frames" in st.session_state and st.session_state.audio_frames:
         try:
-            with st.spinner("🔄 Processing audio..."):
-                # Save audio frames to file
-                audio_path = save_audio(st.session_state.audio_frames)
-                
-                # Transcribe audio
-                user_text = transcribe_audio(audio_path)
-                
-                # Clean up
-                os.remove(audio_path)
-                st.session_state.audio_frames = []  # Clear frames
-                
-                if user_text:
-                    return user_text
-                else:
-                    st.error("❌ Could not transcribe audio. Please try again.")
-                    return None
+            # Save audio frames to file
+            audio_path = save_audio(st.session_state.audio_frames)
+            
+            # Transcribe audio
+            user_text = transcribe_audio(audio_path)
+            
+            # Clean up
+            os.remove(audio_path)
+            st.session_state.audio_frames = []  # Clear frames
+            
+            if user_text and user_text.strip():
+                return user_text.strip()
+            else:
+                st.error("❌ Could not transcribe audio or audio was empty. Please try speaking louder and clearer.")
+                return None
         except Exception as e:
             log_and_alert_error("Audio Processing", e)
+            st.session_state.audio_frames = []  # Clear frames on error
             return None
     else:
         st.warning("⚠️ No audio frames recorded. Please record some audio first.")
@@ -147,6 +147,8 @@ if "audio_frames" not in st.session_state:
     st.session_state.audio_frames = []
 if "recording_state" not in st.session_state:
     st.session_state.recording_state = "stopped"
+if "current_transcript" not in st.session_state:
+    st.session_state.current_transcript = None
 
 # Load models
 try:
@@ -190,26 +192,55 @@ webrtc_ctx = webrtc_streamer(
     sendback_audio=False
 )
 
-# Recording controls with improved state management
-col1, col2 = st.columns(2)
-
-with col1:
-    if webrtc_ctx.state.playing:
-        st.success("🎤 Recording in progress...")
-        st.session_state.recording_state = "recording"
-    elif st.session_state.recording_state == "recording":
-        st.session_state.recording_state = "stopped"
-        st.info("🛑 Recording stopped. Click 'Transcribe' to process.")
-
-with col2:
-    if st.button("⏹️ Stop and Transcribe", disabled=not (st.session_state.audio_frames)):
+# Automatic transcription when recording stops
+if webrtc_ctx.state.playing:
+    st.success("🎤 Recording in progress... Speak now!")
+    st.session_state.recording_state = "recording"
+    # Clear any previous transcript while recording
+    if "current_transcript" in st.session_state:
+        del st.session_state.current_transcript
+    
+elif st.session_state.recording_state == "recording":
+    # Recording just stopped - automatically process
+    st.session_state.recording_state = "processing"
+    
+    if st.session_state.audio_frames:
+        st.info("� Recording stopped. Processing audio...")
+        
+        # Automatically process the recorded audio
         user_text = process_recorded_audio()
+        
         if user_text:
-            handle_transcript(user_text, openai_key, use_openai)
+            st.session_state.current_transcript = user_text
+            st.session_state.recording_state = "completed"
+            # Force a rerun to show the transcript and get AI response
+            st.rerun()
+        else:
+            st.session_state.recording_state = "stopped"
+    else:
+        st.warning("⚠️ No audio recorded. Please try again.")
+        st.session_state.recording_state = "stopped"
+        
+elif st.session_state.recording_state == "processing":
+    st.info("🔄 Processing your recording...")
+    
+elif st.session_state.recording_state == "completed":
+    # Show transcript and get AI response
+    if "current_transcript" in st.session_state:
+        st.success("✅ Recording processed successfully!")
+        handle_transcript(st.session_state.current_transcript, openai_key, use_openai)
+        # Reset for next recording
+        st.session_state.recording_state = "stopped"
+        if "current_transcript" in st.session_state:
+            del st.session_state.current_transcript
+else:
+    # Default stopped state
+    st.info("🎙️ Click 'START' above to begin recording")
+    st.session_state.recording_state = "stopped"
 
 # Show recording status
 if st.session_state.audio_frames:
-    st.info(f"📊 Recorded {len(st.session_state.audio_frames)} audio frames")
+    st.info(f"📊 Audio buffer: {len(st.session_state.audio_frames)} frames")
 
 # Upload audio
 st.markdown("### 📁 Upload Audio File")
@@ -237,7 +268,8 @@ if st.session_state.history:
 
 # Debug section (can be removed in production)
 if st.checkbox("🔧 Debug Info"):
-    st.write("**WebRTC State:**", webrtc_ctx.state if webrtc_ctx else "None")
+    st.write("**WebRTC State:**", webrtc_ctx.state.playing if webrtc_ctx else "None")
     st.write("**Audio Frames Count:**", len(st.session_state.audio_frames))
     st.write("**Recording State:**", st.session_state.recording_state)
+    st.write("**Current Transcript:**", st.session_state.current_transcript)
 
