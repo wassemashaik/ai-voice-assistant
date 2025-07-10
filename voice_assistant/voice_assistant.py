@@ -20,14 +20,30 @@ load_dotenv()
 class AudioProcessor(AudioProcessorBase):
     def __init__(self):
         self.lock = threading.Lock()
+        # Initialize audio_frames if not exists
+        if "audio_frames" not in st.session_state:
+            st.session_state.audio_frames = []
         
     def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
         with self.lock:
-            audio = frame.to_ndarray()
-            # Properly store frames in session state
-            if "audio_frames" not in st.session_state:
-                st.session_state.audio_frames = []
-            st.session_state.audio_frames.append(audio)
+            try:
+                # Convert frame to numpy array
+                audio = frame.to_ndarray()
+                
+                # Ensure audio_frames exists in session state
+                if "audio_frames" not in st.session_state:
+                    st.session_state.audio_frames = []
+                
+                # Store the audio frame
+                st.session_state.audio_frames.append(audio)
+                
+                # Debug: Print frame info occasionally
+                if len(st.session_state.audio_frames) % 100 == 0:
+                    print(f"Audio frames recorded: {len(st.session_state.audio_frames)}")
+                    
+            except Exception as e:
+                print(f"Error in AudioProcessor.recv: {e}")
+                
         return frame
 
 def save_audio(frames, sample_rate=48000):
@@ -113,11 +129,25 @@ def process_recorded_audio():
     """Process recorded audio frames and transcribe"""
     if "audio_frames" in st.session_state and st.session_state.audio_frames:
         try:
+            print(f"Processing {len(st.session_state.audio_frames)} audio frames...")
+            
             # Save audio frames to file
             audio_path = save_audio(st.session_state.audio_frames)
+            print(f"Audio saved to: {audio_path}")
+            
+            # Check file size
+            file_size = os.path.getsize(audio_path)
+            print(f"Audio file size: {file_size} bytes")
+            
+            if file_size < 1000:  # Less than 1KB indicates very short/empty audio
+                st.warning("⚠️ Audio file is very small. Please record for at least 2-3 seconds.")
+                os.remove(audio_path)
+                st.session_state.audio_frames = []
+                return None
             
             # Transcribe audio
             user_text = transcribe_audio(audio_path)
+            print(f"Transcription result: {user_text}")
             
             # Clean up
             os.remove(audio_path)
@@ -197,8 +227,7 @@ if webrtc_ctx.state.playing:
     st.success("🎤 Recording in progress... Speak now!")
     st.session_state.recording_state = "recording"
     # Clear any previous transcript while recording
-    if "current_transcript" in st.session_state:
-        del st.session_state.current_transcript
+    st.session_state.current_transcript = None
     
 elif st.session_state.recording_state == "recording":
     # Recording just stopped - automatically process
@@ -226,21 +255,31 @@ elif st.session_state.recording_state == "processing":
     
 elif st.session_state.recording_state == "completed":
     # Show transcript and get AI response
-    if "current_transcript" in st.session_state:
+    if st.session_state.current_transcript:
         st.success("✅ Recording processed successfully!")
         handle_transcript(st.session_state.current_transcript, openai_key, use_openai)
         # Reset for next recording
         st.session_state.recording_state = "stopped"
-        if "current_transcript" in st.session_state:
-            del st.session_state.current_transcript
+        st.session_state.current_transcript = None
 else:
     # Default stopped state
     st.info("🎙️ Click 'START' above to begin recording")
     st.session_state.recording_state = "stopped"
 
 # Show recording status
-if st.session_state.audio_frames:
-    st.info(f"📊 Audio buffer: {len(st.session_state.audio_frames)} frames")
+frames_count = len(st.session_state.audio_frames) if st.session_state.audio_frames else 0
+if frames_count > 0:
+    st.info(f"📊 Audio buffer: {frames_count} frames recorded")
+    # Add clear button when frames exist
+    if st.button("🗑️ Clear Audio Buffer"):
+        st.session_state.audio_frames = []
+        st.session_state.recording_state = "stopped"
+        st.session_state.current_transcript = None
+        st.rerun()
+elif st.session_state.recording_state == "recording":
+    st.info("📊 Listening for audio... (frames will appear here)")
+else:
+    st.info("📊 Audio buffer: Empty - Ready to record")
 
 # Upload audio
 st.markdown("### 📁 Upload Audio File")
@@ -271,5 +310,5 @@ if st.checkbox("🔧 Debug Info"):
     st.write("**WebRTC State:**", webrtc_ctx.state.playing if webrtc_ctx else "None")
     st.write("**Audio Frames Count:**", len(st.session_state.audio_frames))
     st.write("**Recording State:**", st.session_state.recording_state)
-    st.write("**Current Transcript:**", st.session_state.current_transcript)
+    st.write("**Current Transcript:**", getattr(st.session_state, 'current_transcript', 'Not set'))
 

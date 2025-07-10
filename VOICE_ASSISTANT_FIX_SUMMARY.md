@@ -27,6 +27,16 @@
 - **Fix**: Implemented automatic transcription when recording stops
 - **Impact**: Seamless workflow - record → stop → automatic transcription → AI response
 
+### **6. Session State AttributeError (FIXED)**
+- **Issue**: `AttributeError: st.session_state has no attribute "current_transcript"` when accessing debug info
+- **Fix**: Proper session state initialization and safe access using `getattr()`
+- **Impact**: Prevents crashes and provides stable session state management
+
+### **7. Audio Recording Issues (IMPROVED)**
+- **Issue**: Audio frames not being captured properly, no debugging information
+- **Fix**: Enhanced AudioProcessor with better error handling and debug logging
+- **Impact**: More reliable audio capture with troubleshooting information
+
 ## 🛠️ **Key Improvements Made**
 
 ### **Enhanced Audio Processing**
@@ -77,10 +87,13 @@ webrtc_ctx = webrtc_streamer(
 ### **Enhanced UI/UX**
 - ✅ **Automatic transcription workflow** - No manual buttons needed
 - ✅ Real-time recording status display with clear progress indicators
-- ✅ Frame count indicator
+- ✅ Frame count indicator with smart status messages
+- ✅ **Clear Audio Buffer** button for easy reset
 - ✅ Streamlined user experience (record → stop → automatic processing)
 - ✅ Clear visual feedback for all recording states
-- ✅ Debug panel for troubleshooting
+- ✅ Enhanced debug panel with safe session state access
+- ✅ Audio file size validation (prevents empty recordings)
+- ✅ Console logging for developer debugging
 
 ## 🎯 **Usage Instructions**
 
@@ -172,8 +185,28 @@ if st.checkbox("🔧 Debug Info"):
 If issues persist:
 
 1. **Check Debug Panel** - Enable to see WebRTC state and frame counts
-2. **Browser Console** - Look for WebRTC errors
+2. **Browser Console** - Look for WebRTC errors (F12 → Console tab)
 3. **Microphone Permissions** - Ensure browser has microphone access
 4. **Model Loading** - First Whisper run downloads models (may be slow)
+5. **Terminal Output** - Check console for debug messages like "Audio frames recorded: X"
+6. **Clear Audio Buffer** - Use the 🗑️ button to reset if stuck
+
+## 🐛 **Common Issues & Solutions**
+
+### **"No audio frames recorded"**
+- **Cause**: WebRTC not capturing microphone input
+- **Solution**: Check browser microphone permissions, try refreshing page
+
+### **"Audio file is very small"**
+- **Cause**: Recording too short or microphone not working
+- **Solution**: Record for at least 2-3 seconds, check microphone levels
+
+### **"Could not transcribe audio"**
+- **Cause**: Whisper can't process the audio file
+- **Solution**: Ensure clear speech, check audio quality, try recording again
+
+### **Session state errors**
+- **Cause**: Streamlit rerun issues
+- **Solution**: Use "Clear Audio Buffer" button and restart recording
 
 The app should now work reliably for recording → transcription → AI response workflow!
