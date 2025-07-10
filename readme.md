@@ -1,4 +1,4 @@
-# 🧠 Voice Assistant Agent
+# 🧠 AI Voice Assistant Agent
 
 A smart AI-powered assistant that can **transcribe meeting audio**, **respond intelligently**, and even **speak its replies aloud** — as if it attended the meeting on your behalf.
 
@@ -6,15 +6,15 @@ Built using **Python**, **Streamlit**, **Whisper**, **OpenAI GPT-3.5** or **Loca
 
 ---
 
-## 🎯 Features
+## 🚀 Features
 
-- 🎙️ Upload meeting audio (MP3, WAV, M4A)
-- 📝 Transcribe audio using OpenAI’s Whisper
-- 🤖 Smart reply generation (OpenAI GPT-3.5 or local model via Ollama)
-- 🔊 Converts AI replies to speech using pyttsx3
-- 🗂️ Saves and displays conversation history
-- ⚙️ Built-in error handling for API and transcription issues
-- 🧪 Easy to switch between local and cloud models
+- 🎙️ Upload meeting audio (`.mp3`, `.wav`, `.m4a`)
+- 🧠 Transcribes using [OpenAI Whisper](https://github.com/openai/whisper)
+- 🤖 Responds using:
+  - OpenAI GPT-3.5 (cloud)
+  - Mistral via Ollama (local)
+- 🔊 Converts response to speech (TTS)
+- 💬 Conversation history tracking
 
 ---
 
@@ -37,9 +37,9 @@ Built using **Python**, **Streamlit**, **Whisper**, **OpenAI GPT-3.5** or **Loca
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/yourusername/ai-voice-assistant.git
+   git clone https://github.com/wassemashaik/ai-voice-assistant.git
    cd ai-voice-assistant
----
+
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
@@ -48,3 +48,13 @@ Built using **Python**, **Streamlit**, **Whisper**, **OpenAI GPT-3.5** or **Loca
 ![Last Commit](https://img.shields.io/github/last-commit/wassemashaik/ai-voice-assistant)
 ![Stars](https://img.shields.io/github/stars/wassemashaik/ai-voice-assistant?style=social)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+
+
+to activate ollma server you should ollama run mistral
+
+to activate virtual enviroment of python you should streamlit run voice_assistant.py
+
+Features added:
+- 
+
+things to do:
