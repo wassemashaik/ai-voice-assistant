@@ -33,12 +33,9 @@ Built using **Python**, **Streamlit**, **Whisper**, **OpenAI GPT-3.5** or **Loca
 
 ---
 
+## 🛠️ Installation
 
-to activate ollma server you should ollama run mistral
-
-to activate virtual enviroment of python you should streamlit run voice_assistant.py
-
-Features added:
-- 
-
-things to do:
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/yourusername/ai-voice-assistant.git
+   cd ai-voice-assistant
