@@ -22,6 +22,11 @@
 - **Fix**: Improved state management with proper session state initialization
 - **Impact**: Maintains recording state across app reruns
 
+### **5. Confusing Manual Transcription Button (FIXED)**
+- **Issue**: User saw "Click Transcribe" message but no clear transcribe button, requiring manual action
+- **Fix**: Implemented automatic transcription when recording stops
+- **Impact**: Seamless workflow - record → stop → automatic transcription → AI response
+
 ## 🛠️ **Key Improvements Made**
 
 ### **Enhanced Audio Processing**
@@ -70,25 +75,27 @@ webrtc_ctx = webrtc_streamer(
 - ✅ Better error handling and user feedback
 
 ### **Enhanced UI/UX**
-- ✅ Real-time recording status display
+- ✅ **Automatic transcription workflow** - No manual buttons needed
+- ✅ Real-time recording status display with clear progress indicators
 - ✅ Frame count indicator
-- ✅ Disabled button when no audio recorded
-- ✅ Clear visual feedback for recording states
+- ✅ Streamlined user experience (record → stop → automatic processing)
+- ✅ Clear visual feedback for all recording states
 - ✅ Debug panel for troubleshooting
 
 ## 🎯 **Usage Instructions**
 
-### **For Recording Audio:**
+### **For Recording Audio (AUTOMATIC WORKFLOW):**
 1. Click the WebRTC "START" button to begin recording
-2. Speak into your microphone (you'll see "🎤 Recording in progress...")
+2. Speak into your microphone (you'll see "🎤 Recording in progress... Speak now!")
 3. Click "STOP" in the WebRTC controls
-4. Click "⏹️ Stop and Transcribe" button
-5. Wait for transcription and AI response
+4. **Automatic transcription and AI response** - No manual button needed!
 
 ### **Recording Status Indicators:**
-- 🎤 **Recording in progress...** - WebRTC is actively recording
-- 🛑 **Recording stopped. Click 'Transcribe' to process.** - Ready to transcribe
-- 📊 **Recorded X audio frames** - Shows frame count
+- 🎤 **Recording in progress... Speak now!** - WebRTC is actively recording
+- � **Recording stopped. Processing audio...** - Automatically transcribing
+- 🔄 **Processing your recording...** - Transcription in progress
+- ✅ **Recording processed successfully!** - Shows transcript and AI response
+- 📊 **Audio buffer: X frames** - Shows frame count
 
 ## 🔧 **Architectural Improvements**
 
@@ -129,13 +136,12 @@ if st.checkbox("🔧 Debug Info"):
    streamlit run voice_assistant/voice_assistant.py
    ```
 
-3. **Test recording workflow:**
-   - Start WebRTC recording
-   - Speak clearly for 3-5 seconds
-   - Stop recording
-   - Click "Stop and Transcribe"
-   - Verify transcription appears
-   - Check AI response generation
+3. **Test automatic recording workflow:**
+   - Start WebRTC recording (click START)
+   - Speak clearly for 3-5 seconds  
+   - Stop recording (click STOP)
+   - **Automatic processing** - transcription and AI response happen automatically
+   - Verify transcription and response appear without any manual buttons
 
 ## 📋 **Potential Future Enhancements**
 
